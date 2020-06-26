@@ -93,7 +93,7 @@ def create_data_model():
     ]
     data['num_vehicles'] = 2
     data['demands'] = [0, 2, 4, -1, 1, 2, 3, 11, -5, -5, -4, -3, 2, 1, -9, -2, 3]
-    data['vehicle_capacities'] = [15, 5]
+    data['vehicle_capacities'] = [20, 20]
     data['depot'] = 0
     return data
 
@@ -127,9 +127,15 @@ def print_solution(data, manager, routing, solution):
 
 
 def main():
+    #df = pd.read_csv('/home/karan/InternShipCodes/csv/FL_insurance_sample/DistMatr9nodes.csv')
+
     """Entry point of the program."""
     # Instantiate the data problem.
     data = create_data_model()
+#    print(type(data['distance_matrix']))
+#    print(data['distance_matrix'])
+    #data['distance_matrix'] = df.values.tolist()
+    #print(data['distance_matrix'])
 
     # Create the routing index manager.
     manager = pywrapcp.RoutingIndexManager(len(data['distance_matrix']),
@@ -172,8 +178,6 @@ def main():
         routing.solver().Add(
             distance_dimension.CumulVar(pickup_index) <=
             distance_dimension.CumulVar(delivery_index))
-    
-    
     def demand_callback(from_index):
         """Returns the demand of the node."""
         # Convert from routing variable Index to demands NodeIndex.
@@ -188,15 +192,12 @@ def main():
         data['vehicle_capacities'],  # vehicle maximum capacities
         True,  # start cumul to zero
         'Capacity')
+
     # Setting first solution heuristic.
-#    search_parameters = pywrapcp.DefaultRoutingSearchParameters()
-#    search_parameters.local_search_metaheuristic = (
-#    routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
-#    search_parameters.time_limit.seconds = 50
-#    search_parameters.log_search = True
+
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION)
+        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
 
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)
@@ -205,7 +206,6 @@ def main():
     if solution:
         print_solution(data, manager, routing, solution)
     print("status", routing.status())
-
-
+    #plot(manager, routing, solution, data)
 if __name__ == '__main__':
     main()
